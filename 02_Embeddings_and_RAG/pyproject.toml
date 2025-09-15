@@ -16,4 +16,5 @@ dependencies = [
     "scikit-learn>=1.6.1",
     "scipy>=1.15.1",
     "pypdf>=6.0.0",
+    "langchain-community>=0.3.29",
 ]
