@@ -59,7 +59,7 @@ def helpfulness_node(state: AgentState) -> Dict[str, Any]:
   {final_response}"""
 
     helpfulness_prompt_template = PromptTemplate.from_template(prompt_template)
-    helpfulness_check_model = get_chat_model(model_name="gpt-4.1-mini")
+    helpfulness_check_model = get_chat_model(model_name="gpt-4o-mini")
     helpfulness_chain = (
         helpfulness_prompt_template | helpfulness_check_model | StrOutputParser()
     )

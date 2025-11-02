@@ -5,15 +5,16 @@
 
 ## <h1 align="center" id="heading">Session 14: Build & Serve Agentic Graphs with LangGraph</h1>
 
-| 📰 Session Sheet | ⏺️ Recording     | 🖼️ Slides        | 👨‍💻 Repo         | 📝 Homework      | 📁 Feedback       |
-|:-----------------|:-----------------|:-----------------|:-----------------|:-----------------|:-----------------|
-| [Session 14: Deploying Agents to Production](https://www.notion.so/Session-14-Deploying-Agents-to-Production-26acd547af3d80a59047c1685ff6d61a) |[Recording!](https://us02web.zoom.us/rec/share/P6sJWRwsWWf2cF91MXOzrlM40Tay-CqoLp5drxoS6AGQEvMD3krhLzGFcrhyuAh3.HWnYPtpB0DL2mrj2) (cQ2$d7E5) | [Session 14 Slides](https://www.canva.com/design/DAG2pZbibmw/YJHR3HSgG992FE1I-Mmwjw/edit?utm_content=DAG2pZbibmw&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton) | You are here! | [Session 14 Assignment: LangGraph_Platform](https://github.com/AI-Maker-Space/AIE8/tree/main/14_LangGraph_Platform) | [AIE8 Feedback 10/23](https://forms.gle/rSCtaKTaPkTeqoo1A)
+| 📰 Session Sheet                                                                                                                               | ⏺️ Recording                                                                                                                                 | 🖼️ Slides                                                                                                                                                                          | 👨‍💻 Repo       | 📝 Homework                                                                                                         | 📁 Feedback                                                |
+| :--------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------ | :------------------------------------------------------------------------------------------------------------------ | :--------------------------------------------------------- |
+| [Session 14: Deploying Agents to Production](https://www.notion.so/Session-14-Deploying-Agents-to-Production-26acd547af3d80a59047c1685ff6d61a) | [Recording!](https://us02web.zoom.us/rec/share/P6sJWRwsWWf2cF91MXOzrlM40Tay-CqoLp5drxoS6AGQEvMD3krhLzGFcrhyuAh3.HWnYPtpB0DL2mrj2) (cQ2$d7E5) | [Session 14 Slides](https://www.canva.com/design/DAG2pZbibmw/YJHR3HSgG992FE1I-Mmwjw/edit?utm_content=DAG2pZbibmw&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton) | You are here! | [Session 14 Assignment: LangGraph_Platform](https://github.com/AI-Maker-Space/AIE8/tree/main/14_LangGraph_Platform) | [AIE8 Feedback 10/23](https://forms.gle/rSCtaKTaPkTeqoo1A) |
 
 # Build 🏗️
 
 Run the repository and complete the following:
 
 - 🤝 Breakout Room Part #1 — Building and serving your LangGraph Agent Graph
+
   - Task 1: Getting Dependencies & Environment
     - Configure `.env` (OpenAI, Tavily, optional LangSmith)
   - Task 2: Serve the Graph Locally
@@ -39,20 +40,38 @@ Run the repository and complete the following:
 Compare the `agent` and `agent_helpful` assistants defined in `langgraph.json`. Where does the helpfulness evaluator fit in the graph, and under what condition should execution route back to the agent vs. terminate?
 
 ##### ✅ Answer:
-_(enter answer here)_
+
+- agent (simple_agent):
+  - Entry → agent → conditional routing based on tool calls
+    - If tool_calls exist → routes to action (ToolNode) → loops back to agent
+    - If no tool_calls → terminates at END
+- agent_helpful (agent_with_helpfulness):
+  - Same entry and agent/action loop as agent
+  - After agent responds with no tool_calls → routes to helpfulness evaluator instead of END
+  - Helpfulness evaluator placement: After the agent responds (when no tool_calls remain), before termination
+  - Routing logic:
+    - Returns to agent if helpfulness = "N" (continue loop)
+    - Terminates at END if helpfulness = "Y" (response is helpful)
+    - Terminates at END if loop limit exceeded (>10 messages; uses "HELPFULNESS:END" marker)
 
 #### 🏗️ Activity #1 Debugging A Graph
 
-Select the `agent_with_helpfulness` and set one or more interrupts (at least one `Before` and one `After`). Try changing values and continuing the turn. 
+Select the `agent_with_helpfulness` and set one or more interrupts (at least one `Before` and one `After`). Try changing values and continuing the turn.
 
 #### ❓ Question 2:
 
 What are your thoughts on when you would use a Before interrupt vs. an After interrupt?
 
 ##### ✅ Answer:
-_(enter answer here)_
 
-
+- Before interrupt:
+  - Intercept/validate/modify input before node execution
+  - Use for input sanitization, validation, conditional skipping, or parameter adjustment
+- After interrupt:
+  - Evaluate/validate/modify output after node execution
+  - Use for output quality checks (e.g., helpfulness), post-processing, conditional continuation, or routing decisions based on results
+  - Example: helpfulness check after agent response to decide whether to continue or end
+- General principle: Before = gate input; After = gate output and decide next steps.
 
 <details>
 <summary>🚧 Advanced Build 🚧 (OPTIONAL - <i>open this section for the requirements</i>)</summary>
@@ -67,40 +86,55 @@ _(enter answer here)_
 - Short demo showing both assistants responding
 
 # Share 🚀
+
 - Walk through your graph in Studio
 - Share 3 lessons learned and 3 lessons not learned
+
+## Lessons Learned
+
+- **Conditional routing for quality checks**: LangGraph's conditional edges allow you to evaluate response quality before termination. By routing to a helpfulness evaluator node after the agent responds, you can decide whether to loop back or end based on the output quality.
+- **Before vs After interrupts**: Before interrupts intercept and validate inputs before node execution, making them ideal for input sanitization. After interrupts evaluate outputs and enable routing decisions based on execution results, perfect for quality gates and feedback loops.
+- **Studio visualization value**: LangGraph Studio provides real-time node-by-node execution visualization that makes graph flow immediately apparent. This visual debugging capability significantly accelerates understanding of conditional routing paths and message flow through the state.
+
+## Lessons Yet to Be Learned
+
+- **Production deployment patterns**: Understanding how to deploy LangGraph Platform graphs to cloud infrastructure with proper scaling, monitoring, and reliability is still ahead. Learning deployment best practices for handling production traffic, error recovery, and performance optimization remains a key area.
+- **Advanced interrupt strategies**: Complex multi-agent scenarios likely require sophisticated interrupt patterns for coordination and handoff between agents. Exploring interrupt hierarchies, conditional interrupts based on state, and interrupt chains for multi-step validations are areas to investigate.
+- **MCP server integration**: Integrating Model Context Protocol servers to dynamically extend tool capabilities is the advanced build option not yet explored. Understanding how to create FastMCP servers, connect them to LangGraph tools, and manage MCP tool lifecycle in production needs deeper investigation.
 
 # Main Homework Assignment
 
 Follow these steps to prepare and submit your homework assignment:
+
 1. Create a branch of your `AIE8` repo to track your changes. Example command: `git checkout -b s14-assignment`
 2. Complete the Tasks listed in the Breakout Room sections of `Build 🏗️`
 3. Complete the activities and questions in `Activities and Questions 🏗️ &❓` by editing the file and replacing "_(enter answer here)_" with your responses
-3. Commit, and push your completed notebook to your `origin` repository. _NOTE: Do not merge it into your main branch._
-4. Record a Loom video reviewing the content of your completed notebook
-5. Make sure to include all of the following on your Homework Submission Form:
-    + The GitHub URL to the `README.md` file _on your assignment branch (not main)_
-    + The URL to your Loom Video
-    + Your Three Lessons Learned/Not Yet Learned
-    + The URLs to any social media posts (LinkedIn, X, Discord, etc.) ⬅️ _easy Extra Credit points!_
-
+4. Commit, and push your completed notebook to your `origin` repository. _NOTE: Do not merge it into your main branch._
+5. Record a Loom video reviewing the content of your completed notebook
+6. Make sure to include all of the following on your Homework Submission Form:
+   - The GitHub URL to the `README.md` file _on your assignment branch (not main)_
+   - The URL to your Loom Video
+   - Your Three Lessons Learned/Not Yet Learned
+   - The URLs to any social media posts (LinkedIn, X, Discord, etc.) ⬅️ _easy Extra Credit points!_
 
 ### OPTIONAL: 🚧 Advanced Build Assignment 🚧
+
 <details>
   <summary>(<i>Open this section for the submission instructions.</i>)</summary>
 
 Follow these steps to prepare and submit your homework assignment:
+
 1. Create a branch of your `AIE8` repo to track your changes. Example command: `git checkout -b s14-assignment`
 2. Create your MCP server
 3. Add it to the existing graph's tools
-4. Deploy it ***locally***
+4. Deploy it **_locally_**
 5. Validate the graph uses the MCP server's tools
 6. Commit, and push your changes to your `origin` repository. _NOTE: Do not merge it into your main branch._
 7. Record a Loom video reviewing the content of your completed notebook.
 8. Make sure to include all of the following on your Homework Submission Form:
-    + The GitHub URL to the notebook you created for the Advanced Build Assignment _on your assignment branch_
-    + The URL to your Loom Video
-    + Your Three Lessons Learned/Not Yet Learned
-    + The URLs to any social media posts (LinkedIn, X, Discord, etc.) ⬅️ _easy Extra Credit points!_
+   - The GitHub URL to the notebook you created for the Advanced Build Assignment _on your assignment branch_
+   - The URL to your Loom Video
+   - Your Three Lessons Learned/Not Yet Learned
+   - The URLs to any social media posts (LinkedIn, X, Discord, etc.) ⬅️ _easy Extra Credit points!_
 
 </details>
