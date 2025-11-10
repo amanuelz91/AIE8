@@ -20,10 +20,15 @@ fi
 
 # Check if .env exists
 if [ ! -f .env ]; then
-    echo "⚙️  No .env file found. Running setup..."
-    python3 setup.py
+    echo "⚙️  No .env file found."
+    echo "💡 Please create a .env file with your API keys or copy from another project."
+    echo "   Example: cp ../14_LangGraph_Platform/.env .env"
     echo ""
+    echo "❌ Setup cannot continue without .env file."
+    exit 1
 fi
+
+echo "✅ Found .env file"
 
 # Install dependencies
 echo "📦 Installing dependencies..."
